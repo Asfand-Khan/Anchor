@@ -4,6 +4,7 @@ import { User } from "../entities/User.entity";
 import { Follow } from "../entities/Follow.entity";
 import { Message } from "../entities/Message.entity";
 import { RefreshToken } from "../entities/RefreshToken.entity";
+import { Like } from "../entities/Like.entity";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -14,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: config.server.nodeEnv === "development",
   logging: config.server.nodeEnv === "development",
-  entities: [User, Follow, Message, RefreshToken],
+  entities: [User, Follow, Message, RefreshToken, Like],
   migrations: ["src/migrations/**/*.ts"],
   subscribers: [],
   charset: "utf8mb4",

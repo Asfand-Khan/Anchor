@@ -1,14 +1,22 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
+  MALE = "male",
+  FEMALE = "female",
+  OTHER = "other",
 }
 
 export enum FollowStatus {
-  PENDING = 'pending',
-  ACCEPTED = 'accepted',
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+}
+
+// New: Relationship status for user listing
+export enum RelationshipStatus {
+  NONE = "none",
+  REQUEST_SENT = "request_sent",
+  REQUEST_RECEIVED = "request_received",
+  FRIENDS = "friends",
 }
 
 export interface AuthRequest extends Request {
@@ -35,6 +43,8 @@ export interface UpdateProfileDto {
   full_name?: string;
   bio?: string;
   location?: string;
+  interests?: string;
+  height?: string;
 }
 
 export interface SendMessageDto {
@@ -49,6 +59,22 @@ export interface PaginationQuery {
 export interface UserListQuery extends PaginationQuery {
   gender?: Gender;
   search?: string;
+}
+
+// New: Enhanced user response with relationship status
+export interface UserWithRelationship {
+  id: string;
+  full_name: string;
+  age: number;
+  gender: Gender;
+  bio: string | null;
+  profile_picture: string | null;
+  location: string | null;
+  is_online: boolean;
+  last_seen: Date | null;
+  total_likes: number;
+  relationship_status: RelationshipStatus;
+  follow_request_id?: string; // ID to accept/reject request
 }
 
 export interface ApiResponse<T = any> {

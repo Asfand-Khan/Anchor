@@ -34,8 +34,14 @@ export class User {
   })
   gender: Gender;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  height: string | null;
+
   @Column({ type: 'text', nullable: true })
   bio: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  interests: string | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   profile_picture: string | null;

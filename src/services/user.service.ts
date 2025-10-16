@@ -1,5 +1,5 @@
 import { UserRepository } from '../repositories/user.repository';
-import { UpdateProfileDto, UserListQuery, PaginatedResponse } from '../types';
+import { UpdateProfileDto, UserListQuery, PaginatedResponse, UserWithRelationship } from '../types';
 import { AppError } from '../middleware/error.middleware';
 
 export class UserService {
@@ -28,6 +28,8 @@ export class UserService {
       bio: user.bio,
       profile_picture: user.profile_picture,
       location: user.location,
+      interests: user.interests,
+      height: user.height,
       is_online: user.is_online,
       last_seen: user.last_seen,
       created_at: user.created_at,
@@ -52,6 +54,8 @@ export class UserService {
       bio: user.bio,
       profile_picture: user.profile_picture,
       location: user.location,
+      interests: user.interests,
+      height: user.height
     };
   }
 
@@ -87,34 +91,41 @@ export class UserService {
       location: user.location,
       is_online: user.is_online,
       last_seen: user.last_seen,
+      interests: user.interests,
+      height: user.height
     };
   }
 
   async getAllUsers(
     query: UserListQuery,
     currentUserId: string
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedResponse<UserWithRelationship>> {
     const page = query.page || 1;
     const limit = query.limit || 20;
 
-    const { users, total } = await this.userRepository.findAll(
+    const { users, total } = await this.userRepository.findAllWithRelationshipStatus(
+      currentUserId,
       page,
       limit,
       query.gender,
       query.search,
-      currentUserId
     );
 
-    const items = users.map((user) => ({
+    const items: UserWithRelationship[] = users.map((user) => ({
       id: user.id,
       full_name: user.full_name,
-      age: this.calculateAge(user.date_of_birth),
+      age: this.calculateAge(new Date(user.date_of_birth)),
       gender: user.gender,
       bio: user.bio,
       profile_picture: user.profile_picture,
       location: user.location,
-      is_online: user.is_online,
+      is_online: Boolean(user.is_online),
       last_seen: user.last_seen,
+      total_likes: parseInt(user.total_likes) || 0,
+      relationship_status: user.relationship_status,
+      follow_request_id: user.follow_request_id,
+      interests: user.interests,
+      height: user.height
     }));
 
     return {

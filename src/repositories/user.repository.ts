@@ -67,6 +67,88 @@ export class UserRepository {
     return { users, total };
   }
 
+  async findAllWithRelationshipStatus(
+    currentUserId: string,
+    page: number = 1,
+    limit: number = 20,
+    gender?: Gender,
+    search?: string
+  ): Promise<{ users: any[]; total: number }> {
+    let query = `
+      SELECT 
+        u.id,
+        u.full_name,
+        u.date_of_birth,
+        u.gender,
+        u.bio,
+        u.profile_picture,
+        u.location,
+        u.is_online,
+        u.interests,
+        u.last_seen,
+        u.created_at,
+        COALESCE(like_counts.total_likes, 0) as total_likes,
+        CASE
+          WHEN f1.status = 'accepted' AND f2.status = 'accepted' THEN 'friends'
+          WHEN f1.status = 'pending' THEN 'request_sent'
+          WHEN f2.status = 'pending' THEN 'request_received'
+          ELSE 'none'
+        END as relationship_status,
+        CASE
+          WHEN f2.status = 'pending' THEN f2.id
+          ELSE NULL
+        END as follow_request_id
+      FROM users u
+      LEFT JOIN follows f1 ON f1.follower_id = ? AND f1.following_id = u.id
+      LEFT JOIN follows f2 ON f2.follower_id = u.id AND f2.following_id = ?
+      LEFT JOIN (
+        SELECT liked_id, COUNT(*) as total_likes
+        FROM likes
+        GROUP BY liked_id
+      ) like_counts ON like_counts.liked_id = u.id
+      WHERE u.id != ?
+    `;
+
+    const params: any[] = [currentUserId, currentUserId, currentUserId];
+
+    if (gender) {
+      query += ` AND u.gender = ?`;
+      params.push(gender);
+    }
+
+    if (search) {
+      query += ` AND (u.full_name LIKE ? OR u.location LIKE ?)`;
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    query += ` ORDER BY u.created_at DESC LIMIT ? OFFSET ?`;
+    params.push(limit, (page - 1) * limit);
+
+    const users = await this.repository.query(query, params);
+
+    // Get total count
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM users u
+      WHERE u.id != ?
+    `;
+    const countParams: any[] = [currentUserId];
+
+    if (gender) {
+      countQuery += ` AND u.gender = ?`;
+      countParams.push(gender);
+    }
+
+    if (search) {
+      countQuery += ` AND (u.full_name LIKE ? OR u.location LIKE ?)`;
+      countParams.push(`%${search}%`, `%${search}%`);
+    }
+
+    const [{ total }] = await this.repository.query(countQuery, countParams);
+
+    return { users, total: parseInt(total) };
+  }
+
   async update(id: string, userData: Partial<User>): Promise<User | null> {
     await this.repository.update(id, userData);
     return await this.findById(id);
