@@ -80,6 +80,10 @@ class Server {
       });
     });
 
+    this.app.get("/asfand-baby", (_req, res) => {
+      res.sendFile(`${__dirname}../socket.html`);
+    });
+
     // API routes
     this.app.use(`${apiPrefix}/auth`, authRoutes);
     this.app.use(`${apiPrefix}/profile`, profileRoutes);
@@ -106,6 +110,7 @@ class Server {
 
       // Start server
       this.httpServer.listen(config.server.port, () => {
+        console.log(__dirname);
         console.log("═══════════════════════════════════════════════════════");
         console.log(`🚀 Server running in ${config.server.nodeEnv} mode`);
         console.log(`📡 HTTP Server: http://localhost:${config.server.port}`);
