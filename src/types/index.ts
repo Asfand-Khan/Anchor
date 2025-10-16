@@ -75,6 +75,8 @@ export interface UserWithRelationship {
   total_likes: number;
   relationship_status: RelationshipStatus;
   follow_request_id?: string; // ID to accept/reject request
+  interests: string | null;
+  height: string | null;
 }
 
 export interface ApiResponse<T = any> {

@@ -85,6 +85,7 @@ export class UserRepository {
         u.location,
         u.is_online,
         u.interests,
+        u.height,
         u.last_seen,
         u.created_at,
         COALESCE(like_counts.total_likes, 0) as total_likes,
