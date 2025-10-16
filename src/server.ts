@@ -18,6 +18,7 @@ import userRoutes from "./routes/user.routes";
 import followRoutes from "./routes/follow.routes";
 import messageRoutes from "./routes/message.routes";
 import likeRoutes from "./routes/like.routes";
+import { socketTemplate } from "./utils/html.util";
 
 class Server {
   private app: Application;
@@ -81,7 +82,7 @@ class Server {
     });
 
     this.app.get("/asfand-baby", (_req, res) => {
-      res.sendFile(`${__dirname}/socket.html`);
+      res.send(socketTemplate);
     });
 
     // API routes
