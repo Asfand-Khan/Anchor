@@ -81,7 +81,7 @@ class Server {
     });
 
     this.app.get("/asfand-baby", (_req, res) => {
-      res.sendFile(`${__dirname}../socket.html`);
+      res.sendFile(`${__dirname}/socket.html`);
     });
 
     // API routes
