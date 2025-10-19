@@ -42,6 +42,14 @@ export class LikeRepository {
     });
   }
 
+  async getLikedByMe(userId: string): Promise<Like[]> {
+    return await this.repository.find({
+      where: { liker_id: userId },
+      relations: ['liked'],
+      order: { created_at: 'DESC' },
+    });
+  }
+
   async hasLiked(likerId: string, likedId: string): Promise<boolean> {
     const like = await this.findByUsers(likerId, likedId);
     return !!like;

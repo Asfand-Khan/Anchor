@@ -24,10 +24,17 @@ router.delete("/:userId", likeController.unlikeUser);
 
 /**
  * @route   GET /api/likes/my-likes
- * @desc    Get current user's received likes
+ * @desc    Get current user's received likes (who liked me)
  * @access  Private
  */
-router.get("/my-likes", likeController.getMyLikes);
+router.get('/my-likes', likeController.getMyLikes);
+
+/**
+ * @route   GET /api/likes/liked-by-me
+ * @desc    Get users that I liked
+ * @access  Private
+ */
+router.get('/liked-by-me', likeController.getLikedByMe);
 
 /**
  * @route   GET /api/likes/:userId/list

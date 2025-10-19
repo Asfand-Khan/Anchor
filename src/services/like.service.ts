@@ -72,6 +72,21 @@ export class LikeService {
     }));
   }
 
+  async getLikedByMe(userId: string) {
+    const likes = await this.likeRepository.getLikedByMe(userId);
+
+    return likes.map((like) => ({
+      id: like.id,
+      user: {
+        id: like.liked.id,
+        full_name: like.liked.full_name,
+        profile_picture: like.liked.profile_picture,
+        bio: like.liked.bio,
+      },
+      created_at: like.created_at,
+    }));
+  }
+
   async getLikesCount(userId: string): Promise<number> {
     return await this.likeRepository.getLikesCount(userId);
   }

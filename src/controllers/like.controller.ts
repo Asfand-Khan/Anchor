@@ -54,6 +54,16 @@ export class LikeController {
     }
   };
 
+  getLikedByMe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = req.user!.id;
+      const likes = await this.likeService.getLikedByMe(userId);
+      ResponseUtil.success(res, { likes, total: likes.length });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getLikesCount = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { userId } = req.params;

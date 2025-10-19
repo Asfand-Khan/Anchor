@@ -32,6 +32,33 @@ export class FollowService {
       throw new AppError("Follow request already exists", 409);
     }
 
+    // Check if reverse request exists (User B already sent to User A)
+    const reverseFollow = await this.followRepository.findByUsers(
+      followingId,
+      followerId
+    );
+    if (reverseFollow && reverseFollow.status === "pending") {
+      // User B already sent request to User A
+      // Auto-accept both and make them friends
+      await this.followRepository.acceptFollow(reverseFollow.id);
+
+      // Create and accept the new follow
+      const newFollow = await this.followRepository.create(
+        followerId,
+        followingId
+      );
+      await this.followRepository.acceptFollow(newFollow.id);
+
+      return {
+        id: newFollow.id,
+        follower_id: newFollow.follower_id,
+        following_id: newFollow.following_id,
+        status: newFollow.status,
+        created_at: newFollow.created_at,
+        message: "You are now friends!",
+      };
+    }
+
     // Create follow request
     const follow = await this.followRepository.create(followerId, followingId);
 
@@ -56,8 +83,31 @@ export class FollowService {
       throw new AppError("Not authorized to accept this request", 403);
     }
 
+    // Check if already accepted
+    if (follow.status === "accepted") {
+      throw new AppError("Request already accepted", 400);
+    }
+
     // Accept the follow request
     const updatedFollow = await this.followRepository.acceptFollow(followId);
+
+    // NEW: Automatically create reverse follow to make them mutual friends
+    const reverseFollow = await this.followRepository.findByUsers(
+      userId,
+      follow.follower_id
+    );
+
+    if (!reverseFollow) {
+      // Create reverse follow and accept it immediately
+      const newReverseFollow = await this.followRepository.create(
+        userId,
+        follow.follower_id
+      );
+      await this.followRepository.acceptFollow(newReverseFollow.id);
+    } else if (reverseFollow.status === "pending") {
+      // If reverse follow exists but pending, accept it
+      await this.followRepository.acceptFollow(reverseFollow.id);
+    }
 
     return {
       id: updatedFollow!.id,
@@ -65,6 +115,7 @@ export class FollowService {
       following_id: updatedFollow!.following_id,
       status: updatedFollow!.status,
       updated_at: updatedFollow!.updated_at,
+      message: "You are now friends!",
     };
   }
 
@@ -78,6 +129,18 @@ export class FollowService {
     // Check if user is either the follower or the one being followed
     if (follow.follower_id !== userId && follow.following_id !== userId) {
       throw new AppError("Not authorized to remove this follow", 403);
+    }
+
+    // If they are friends (accepted), also remove the reverse follow
+    if (follow.status === "accepted") {
+      const reverseFollow = await this.followRepository.findByUsers(
+        follow.following_id,
+        follow.follower_id
+      );
+
+      if (reverseFollow) {
+        await this.followRepository.delete(reverseFollow.id);
+      }
     }
 
     await this.followRepository.delete(followId);
